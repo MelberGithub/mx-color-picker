@@ -1,0 +1,13 @@
+[Desktop Entry]
+Encoding=UTF-8
+Type=Application
+Name=MX Color Picker
+Comment=Color picker with editable palettes
+Categories=Graphics;
+Exec=mx-color-picker
+Terminal=false
+Icon=mx-color-picker
+Keywords=Colour;Picker;Palette
+NoDisplay=false
+StartupNotify=false
+StartupWMClass=mx-color-picker

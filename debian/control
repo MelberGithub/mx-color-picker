@@ -1,0 +1,13 @@
+Source: mx-color-picker
+Section: x11
+Priority: optional
+Maintainer: Melber <melber.mx.linux@gmail.com>
+Build-Depends:  debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/MelberGithub/mx-color-picker
+
+Package: mx-color-picker
+Architecture: all
+Depends: yad
+Description: Color picker with editable palettes
+
