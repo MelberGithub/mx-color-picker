@@ -1,16 +1,12 @@
 #!/bin/bash
 #mx-color-picker
-#yad color picker with save list by Melber
+#yad color picker with editable palettes by Melber
 #License: GPL-3.0+
-#Version 26.02.01
+#Version 26.03.01
 
 #export TEXTDOMAINDIR=/usr/share/locale
 #export TEXTDOMAIN="xxx"
 #source gettext.sh
-
-export title="$(gettext 'MX Color Picker')"
-export class="mx-color-picker"
-export iconpath="/usr/share/icons/hicolor/scalable/apps/mx-color-picker.svg"
 
 #define paths
 mxcp_path=$HOME/.config/MX-Linux/mx-color-picker
@@ -18,49 +14,47 @@ config_path=$HOME/.config/MX-Linux/mx-color-picker/mxcp.conf
 colorlist_path=$HOME/.config/MX-Linux/mx-color-picker/palettes
 colorlist_default=$HOME/.config/MX-Linux/mx-color-picker/palettes/default.txt
 
+#first run setup
 
-#first run
-
-if [ ! -d "$colorlist_path" ];then
+if [ ! -d "$colorlist_path" ]; then
     mkdir -p $colorlist_path
 fi
 
-if [ ! -f "$config_path" ];then
+if [ ! -f "$config_path" ]; then
     printf "init_color=#0f56d9
 init_palette=default
 output_mode=hex" > $config_path
 fi
 
-if [ ! -f "$colorlist_default" ];then
-    printf "15 86 217	MX-blue rgba(15,86,217) \n" > $colorlist_default
+if [ ! -f "$colorlist_default" ]; then
+    printf "15 86 217 mx-blue\t(15,86,217)\n" > $colorlist_default
 fi
 
 ########
+# palette manager
 
 palette_manager() {
 
-title_palette="$(gettext 'Palette Management')"
-class_palette="mx-color-picker-palettes"
-iconpath="/usr/share/icons/hicolor/scalable/apps/mx-color-picker.svg"
-
+# make palette list
 manage_palettes() {
-
-#color palette list
 
 colorlist_all=($(ls $colorlist_path/*.txt | sed -e "s|$colorlist_path/||g" | sed -e "s/.txt//g" | sed -e "s/ //g"))
 
 source $config_path
-if [ "$init_palette" = "default" ];then
+
+if [ -z "$init_palette" ] || [ ! -f $colorlist_path/$init_palette.txt ]; then
+    init_palette="default"
+fi
+
+if [ "$init_palette" = "default" ]; then
     colorlist_yad='true default'
 else
     colorlist_yad='false default'
 fi
 
-
-
 for item in ${colorlist_all[@]}; do
     if [ "$item" != "default" ];then
-        if [ "$init_palette" = "$item" ];then
+        if [ "$init_palette" = "$item" ]; then
             colorlist_yad+=" true $item"
         else
             colorlist_yad+=" false $item"
@@ -69,19 +63,23 @@ for item in ${colorlist_all[@]}; do
 done
 
 
-#text variables
-text_palettes_main1="$(gettext 'Select the color palette to use')"
-text_palettes_main2="$(gettext 'or manage existing palettes')"
+#yad setup
+
+title_palette="$(gettext 'Palette Management')"
+class_palette="mx-color-picker-palettes"
+iconpath="/usr/share/icons/hicolor/scalable/apps/mx-color-picker.svg"
+
+text_palettes_main1="$(gettext 'Select a color palette and manage existing palettes')"
 hint_palettes1="$(gettext 'Create new palette')"
 hint_palettes2="$(gettext 'Delete selected palette')"
 hint_palettes3="$(gettext 'Rename selected palette')"
-hint_palettes4="$(gettext 'Color output format')"
+
 BTN_APPLY="$(gettext 'Apply')" ; BTN_APPLY+='!gtk-ok'
 
-
+# manager yad
 palette_selection=$(yad --title="$title_palette" --class="$class_palette" --window-icon="$iconpath" \
 --geometry=150x300+10+10 --borders=10 --separator="" \
---text="<b>$text_palettes_main1\n$text_palettes_main2\n</b>" --text-align=center \
+--text="<b>$text_palettes_main1\n</b>" --text-align=center \
 --list --radiolist --no-headers --column="radios" --column="palettes" --print-column=2 \
 --buttons-layout=spread \
 --button="!edit-rename!$hint_palettes3":28 \
@@ -103,12 +101,13 @@ case $? in
     ;;
     
     24 )
-        text_add="$(gettext 'New palette')"
+        title_add="$(gettext 'Create new palette')"
+        text_add="$(gettext 'New palette name')"
         
-        addpalette_name=$(yad --title="$TITLE" --class="$CLASS" --window-icon="$iconpath" \
---center --width=200 --height=100 --buttons-layout=spread --form --separator="" \
---field="$text_add" "" \
---button="yad-ok" )
+        addpalette_name=$(yad --title="$title_add" --class="$class_palette" --window-icon="$iconpath" \
+        --geometry=300x100+10+10 --buttons-layout=spread --form --separator="" \
+        --field="$text_add" "" \
+        --button="yad-ok" )
 
         if [ ! -f $colorlist_path/$addpalette_name.txt ]; then
             touch $colorlist_path/$addpalette_name.txt
@@ -116,31 +115,41 @@ case $? in
     ;;    
     
     26 )
+
+        
         if [ $palette_selection = "default" ]; then
-            text_nodelete="$(gettext 'Default palette cannot be deleted')"
-            yad --title="$TITLE" --class="$CLASS" --window-icon="$iconpath" --separator="" \
---center --width=200 --height=100 --buttons-layout=spread \
---text="Default palette cannot be deleted" "" --button="yad-ok"
+           title_warn_del="$(gettext 'Warning')"
+           text_warn_del="$(gettext 'Default palette cannot be deleted!')"
+            yad --title="$title_warn_del" --class="$class_palette" --window-icon="$iconpath" --separator="" \
+            --geometry=300x100+10+10 --buttons-layout=spread \
+            --text="$text_warn_del" "" --button="yad-ok"
         else
             rm $colorlist_path/$palette_selection.txt
         fi
     ;;     
 
     28 )
-        palette_newname=$(yad --title="$TITLE" --class="$CLASS" --window-icon="$iconpath" \
---center --width=200 --height=100 --buttons-layout=spread --separator="" --form \
---field="Palette Name" "" \
---button="yad-ok" )
+           title_rename="$(gettext 'Rename palette ')"
+           text_rename="$(gettext 'New palette name')"
+                
+        palette_newname=$(yad --title="$title_rename" --class="$class_palette" --window-icon="$iconpath" \
+        --geometry=300x100+10+10 --buttons-layout=spread --separator="" --form \
+        --field="$text_rename" "" \
+        --button="yad-ok" )
 
-        if [ ! -f $colorlist_path/$addpalette_name.txt ]; then
+        if [ -f $colorlist_path/$palette_newname.txt ]; then
+           title_warn_rename="$(gettext 'Warning')"
+           text_warn_rename="$(gettext 'Renaming failed. A palette with this name already exists!')"
+            yad --title="$title_warn_rename" --class="$class_palette" --window-icon="$iconpath" --separator="" \
+            --geometry=300x100+10+10 --buttons-layout=spread \
+            --text="$text_warn_rename" "" --button="yad-ok"
+        else
             mv $colorlist_path/$palette_selection.txt $colorlist_path/$palette_newname.txt
         fi
-        
     ;;   
     
 esac
 }
-
 
 export -f manage_palettes
 
@@ -156,79 +165,41 @@ export -f palette_manager
 
 ########
 
-
-#hex to rgb functions
-
-hex_to_rgb_add() {
-# Remove leading "#" character, if present
-  : "${1/\#/}"
-
-((r = 16#${_:0:2}, g = 16#${_:2:2}, b = 16#${_:4:2}))
-
-addcolor_name=$(yad --title="$TITLE" --class="$CLASS" --window-icon="$iconpath" \
---center --width=200 --height=100 --buttons-layout=spread --separator="" \
---form \
---field="Color Name" "" \
---button="yad-ok"
-)
-
-export addcolor_string="$r $g $b $addcolor_name rgb($r,$g,$b)"
+#rgb to hex function
+rgb_to_hex() {
+    printf "#%02X%02X%02X" ${*//','/' '}
 }
 
-
-hex_to_rgb_remove() {
-# Remove leading "#" character, if present
-  : "${1/\#/}"
-
-((r = 16#${_:0:2}, g = 16#${_:2:2}, b = 16#${_:4:2}))
-
-removecolor_string="$r $g $b"
-
-removecolor_array=($removecolor_string)
-i=${removecolor_array[0]}
-j=${removecolor_array[1]}
-k=${removecolor_array[2]}
-
-i_new1=$((i+1))
-i_new2=$((i-1))
-j_new1=$((j+1))
-j_new2=$((j-1))
-k_new1=$((k+1))
-k_new2=$((k-1))
-        
-aa="$i,$j,$k_new1" 
-bb="$i,$j,$k_new2"
-cc="$i,$j_new1,$k"
-dd="$i,$j_new2,$k"
-ee="$i_new1,$j,$k"
-ff="$i_new2,$j,$k"
-        
-check_array=($ff $ee $dd $cc $bb $aa)
-                       
-for check_array_item in "${check_array[@]}"; do
-    findline=$(grep "$check_array_item" $colorlist_file)
-    if [ ! -z "$findline" ]; then 
-        removecolor_string="$check_array_item"
-        break 
-     fi
-done
-}
-
-
+########
 
 #main function
 
 color_picker_plus() {
 
+# set up yad
 source $config_path
 
+if [ -z "$init_color" ]; then
+    init_color='#0f56d9'
+fi
+
 colorlist_file=$colorlist_path/$init_palette.txt
+
+if [ $output_mode == hex ]; then
+    text_output='#RRGGBB'
+elif [ $output_mode == rgb ]; then
+    text_output='R,G,B'
+fi
+
+title="$(gettext 'MX Color Picker')"
+class="mx-color-picker"
+iconpath="/usr/share/icons/hicolor/scalable/apps/mx-color-picker.svg"
 
 hint_add="$(gettext 'Add color to palette')"
 hint_remove="$(gettext 'Remove color from palette')"
 hint_manage="$(gettext 'Manage palettes')"
 hint_copy="$(gettext 'Copy color to clipboard')"
-hint_hexrgb="$(gettext 'Toggle output mode to clipboard between #RRGGBB and (r,g,b)')"
+hint_hexrgb="$(gettext 'Toggle output to clipboard between #RRGGBB and R,G,B formats')"
 
 BTN_ADDLIST="!list-add!$hint_add"
 BTN_REMOVELIST="!list-remove!$hint_remove"
@@ -236,20 +207,16 @@ BTN_MANAGELIST="!format-justify-fill!$hint_manage"
 BTN_COPY="!edit-copy!$hint_copy"
 BTN_HEXRGB="!dialog-xml-editor!$hint_hexrgb"
 
-text_main1="$(gettext 'Current color palette:')"
-text_main2="$(gettext 'Current output mode:')"
+text_main1="$(gettext 'Color palette:')"
+text_main2="$(gettext 'Output format:')"
 
-if [ $output_mode == hex ]; then
-    text_output='#RRGGBB'
-elif [ $output_mode == rgb ]; then
-    text_output='rgb=(r,g,b)'
-fi
+# main yad
 
 color_selection=$(yad --title="$title" --class="$class" --window-icon="$iconpath" \
---geometry=300x650+0+0 --separator="" --buttons-layout=spread \
---text="\n$text_main1 <b>$init_palette</b>\n$text_main2 <b>$text_output</b>" \
+--geometry=300x680+10+10 --separator="" --buttons-layout=spread \
+--text="<b>$text_main1</b> $init_palette\t\t<b>$text_main2</b> $text_output" --text-align=center \
 --color --picker --init-color=$init_color \
---palette=$colorlist_file --expand-palette --mode=$output_mode \
+--palette=$colorlist_file --expand-palette --mode=rgb \
 --button="${BTN_MANAGELIST}":10 \
 --button="${BTN_REMOVELIST}":8 \
 --button="${BTN_ADDLIST}":6 \
@@ -259,22 +226,28 @@ color_selection=$(yad --title="$title" --class="$class" --window-icon="$iconpath
 
 getout=$?
 
-
+color_selection=$(echo $color_selection | sed -e 's/rgb(//' | sed -e 's/)//' )
 
 case $getout in
+# exit
     252 )
-        
         alldone="alldone"
     ;;
-    
+# copy to clipboard    
     2 )    
-        echo $color_selection | xclip -selection clipboard
-        
-        sed -i "s/init_color=$init_color/init_color=$color_selection/" $config_path
+        color_selection_hex="$(rgb_to_hex $color_selection)"
+
+        if [ $output_mode == hex ]; then
+            echo $color_selection_hex | xclip -selection clipboard
+        else 
+            echo $color_selection | xclip -selection clipboard
+        fi         
+               
+        sed -i "s/init_color=$init_color/init_color=$color_selection_hex/" $config_path
 
         alldone="nope"    
     ;;
-    
+# output mode   
     4 )    
         if [ $output_mode == hex ]; then
             sed -i 's/output_mode=hex/output_mode=rgb/' $config_path
@@ -284,38 +257,90 @@ case $getout in
         
         alldone="nope"    
     ;;
-        
+# add to palette        
     6 )
-        hex_to_rgb_add $color_selection
-        printf "$addcolor_string \n" >> $colorlist_file
+        colorcheck=$(grep "$color_selection" $colorlist_file)
+        
+        if [ -z "$colorcheck" ]; then
+
+            rgb_numbers=$(echo $color_selection | sed -e 's/rgb=(//' | sed -e 's/)//' | sed -e 's/,/ /g' )
+
+            title_addcolor="$(gettext 'Add color to palette')"        
+            addcolor_name=$(yad --title="$title_addcolor" --class="$class" --window-icon="$iconpath" \
+            --geometry=300x100+10+10 --buttons-layout=spread --separator="" \
+            --form \
+            --field="Color Name" "" \
+            --button="yad-ok"
+            )
+
+            addcolor_string="$rgb_numbers $addcolor_name\t($color_selection)"
+        
+            printf "$addcolor_string\n" >> $colorlist_file
+ 
+        else
+
+            title_addcolor_warn="$(gettext 'Warning')"
+            text_addcolor_warn1="$(gettext 'Palette already contains this color!')"
+            text_addcolor_warn2="$(gettext 'Overwrite the existing color?')"  
+             
+            yad --title="$title_addcolor_warn" --class="$class" --window-icon="$iconpath" \
+            --geometry=300x100+10+10 --buttons-layout=spread --separator="" \
+            --text="\n$text_addcolor_warn1\n$text_addcolor_warn2" --text-align=center \
+            --button="yad-no:30" --button="yad-yes:32"
+
+            case $? in
+            30 )
+                overwrite_color=nej
+            ;;
+            
+            32 ) 
+                rgb_numbers=$(echo $color_selection | sed -e 's/rgb=(//' | sed -e 's/)//' | sed -e 's/,/ /g' )
+
+                title_addcolor="$(gettext 'Add color to palette')"        
+                addcolor_name=$(yad --title="$title_addcolor" --class="$class" --window-icon="$iconpath" \
+                --geometry=300x100+10+10 --buttons-layout=spread --separator="" \
+                --form \
+                --field="Color Name" "" \
+                --button="yad-ok"
+                )
+
+                addcolor_string="$rgb_numbers $addcolor_name\t($color_selection)"
+        
+                sed -i "s/$colorcheck/$addcolor_string/" $colorlist_file
+                sed -i '/^$/d' $colorlist_file
+            ;;
+            
+            esac
+        
+        fi     
+                
+        color_selection_hex="$(rgb_to_hex $color_selection)"
+        sed -i "s/init_color=$init_color/init_color=$color_selection_hex/" $config_path
 
         alldone="nee"
     ;;
-    
+# remove from palette
     8 )
-        hex_to_rgb_remove $color_selection
-        findline=$(grep "$removecolor_string" $colorlist_file)
+        findline=$(grep "$color_selection" $colorlist_file)
         sed -i "s/$findline//" $colorlist_file
         sed -i '/^$/d' $colorlist_file
         
+        color_selection_hex="$(rgb_to_hex $color_selection)"
+        sed -i "s/init_color=$init_color/init_color=$color_selection_hex/" $config_path
+        
         alldone="nah"
     ;;
-    
+# palette manager
     10 )
-###change path###    
-#        bash -c $HOME/Dokumente/yad-color-plus/listmanager
         palette_manager
-        alldone="nope"    
+        alldone="nein"    
     ;;
     
 esac
 
-
-
 }
 
-
-export -f hex_to_rgb_add hex_to_rgb_remove color_picker_plus
+export -f rgb_to_hex color_picker_plus
 
 
 #loop main function
@@ -325,6 +350,5 @@ while [ "$alldone" != "alldone" ]; do
     color_picker_plus
 
 done
-
 
 exit 0
