@@ -64,16 +64,21 @@ done
 
 
 #yad setup
-
+\
+#TRANSLATORS Window Title
 title_palette="$(gettext 'Palette Management')"
 class_palette="mx-color-picker-palettes"
 iconpath="/usr/share/icons/hicolor/scalable/apps/mx-color-picker.svg"
 
+#TRANSLATORS Window text
 text_palettes_main1="$(gettext 'Select a color palette and manage existing palettes')"
+#TRANSLATORS Tooltip for plus button
 hint_palettes1="$(gettext 'Create new palette')"
+#TRANSLATORS Tooltip for minus button
 hint_palettes2="$(gettext 'Delete selected palette')"
+#TRANSLATORS Tooltip for edit button
 hint_palettes3="$(gettext 'Rename selected palette')"
-
+#TRANSLATORS Button text
 BTN_APPLY="$(gettext 'Apply')" ; BTN_APPLY+='!gtk-ok'
 
 # manager yad
@@ -101,7 +106,9 @@ case $? in
     ;;
     
     24 )
+        #TRANSLATORS Window Title
         title_add="$(gettext 'Create new palette')"
+        #TRANSLATORS Window text
         text_add="$(gettext 'New palette name')"
         
         addpalette_name=$(yad --title="$title_add" --class="$class_palette" --window-icon="$iconpath" \
@@ -118,7 +125,9 @@ case $? in
 
         
         if [ $palette_selection = "default" ]; then
+           #TRANSLATORS Window Title
            title_warn_del="$(gettext 'Warning')"
+           #TRANSLATORS Window text
            text_warn_del="$(gettext 'Default palette cannot be deleted!')"
             yad --title="$title_warn_del" --class="$class_palette" --window-icon="$iconpath" --separator="" \
             --geometry=300x100+10+10 --buttons-layout=spread \
@@ -129,7 +138,9 @@ case $? in
     ;;     
 
     28 )
+           #TRANSLATORS Window Title
            title_rename="$(gettext 'Rename palette ')"
+           #TRANSLATORS Window text
            text_rename="$(gettext 'New palette name')"
                 
         palette_newname=$(yad --title="$title_rename" --class="$class_palette" --window-icon="$iconpath" \
@@ -138,7 +149,9 @@ case $? in
         --button="yad-ok" )
 
         if [ -f $colorlist_path/$palette_newname.txt ]; then
+           #TRANSLATORS Window Title
            title_warn_rename="$(gettext 'Warning')"
+           #TRANSLATORS Window text
            text_warn_rename="$(gettext 'Renaming failed. A palette with this name already exists!')"
             yad --title="$title_warn_rename" --class="$class_palette" --window-icon="$iconpath" --separator="" \
             --geometry=300x100+10+10 --buttons-layout=spread \
@@ -191,14 +204,20 @@ elif [ $output_mode == rgb ]; then
     text_output='R,G,B'
 fi
 
+#TRANSLATORS Window Title
 title="$(gettext 'MX Color Picker')"
 class="mx-color-picker"
 iconpath="/usr/share/icons/hicolor/scalable/apps/mx-color-picker.svg"
 
+#TRANSLATORS Tooltip for plus button
 hint_add="$(gettext 'Add color to palette')"
+#TRANSLATORS Tooltip for minus button
 hint_remove="$(gettext 'Remove color from palette')"
+#TRANSLATORS Tooltip for hamburger button
 hint_manage="$(gettext 'Manage palettes')"
+#TRANSLATORS Tooltip for copy button
 hint_copy="$(gettext 'Copy color to clipboard')"
+#TRANSLATORS Tooltip for </> button
 hint_hexrgb="$(gettext 'Toggle output to clipboard between #RRGGBB and R,G,B formats')"
 
 BTN_ADDLIST="!list-add!$hint_add"
@@ -207,7 +226,9 @@ BTN_MANAGELIST="!format-justify-fill!$hint_manage"
 BTN_COPY="!edit-copy!$hint_copy"
 BTN_HEXRGB="!dialog-xml-editor!$hint_hexrgb"
 
+#TRANSLATORS Window text 1
 text_main1="$(gettext 'Color palette:')"
+#TRANSLATORS Window text 1
 text_main2="$(gettext 'Output format:')"
 
 # main yad
@@ -265,11 +286,15 @@ case $getout in
 
             rgb_numbers=$(echo $color_selection | sed -e 's/rgb=(//' | sed -e 's/)//' | sed -e 's/,/ /g' )
 
-            title_addcolor="$(gettext 'Add color to palette')"        
+            #TRANSLATORS Window Title
+            title_addcolor="$(gettext 'Add color to palette')"
+            #TRANSLATORS Window text
+            addcolor_text="$(gettext 'Color Name:')"
+            
             addcolor_name=$(yad --title="$title_addcolor" --class="$class" --window-icon="$iconpath" \
             --geometry=300x100+10+10 --buttons-layout=spread --separator="" \
             --form \
-            --field="Color Name" "" \
+            --field="$addcolor_text" "" \
             --button="yad-ok"
             )
 
@@ -279,8 +304,11 @@ case $getout in
  
         else
 
+            #TRANSLATORS Window Title
             title_addcolor_warn="$(gettext 'Warning')"
+            #TRANSLATORS Window text
             text_addcolor_warn1="$(gettext 'Palette already contains this color!')"
+            #TRANSLATORS Window text
             text_addcolor_warn2="$(gettext 'Overwrite the existing color?')"  
              
             yad --title="$title_addcolor_warn" --class="$class" --window-icon="$iconpath" \
@@ -296,11 +324,15 @@ case $getout in
             32 ) 
                 rgb_numbers=$(echo $color_selection | sed -e 's/rgb=(//' | sed -e 's/)//' | sed -e 's/,/ /g' )
 
-                title_addcolor="$(gettext 'Add color to palette')"        
+                #TRANSLATORS Window Title
+                title_addcolor="$(gettext 'Add color to palette')"
+                #TRANSLATORS Window text
+                addcolor_text="$(gettext 'Color Name:')"                
+                
                 addcolor_name=$(yad --title="$title_addcolor" --class="$class" --window-icon="$iconpath" \
                 --geometry=300x100+10+10 --buttons-layout=spread --separator="" \
                 --form \
-                --field="Color Name" "" \
+                --field="$addcolor_text" "" \
                 --button="yad-ok"
                 )
 
