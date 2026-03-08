@@ -2,7 +2,7 @@
 #mx-color-picker
 #yad color picker with editable palettes by Melber
 #License: GPL-3.0+
-#Version 26.03.01
+#Version 26.03.02
 
 #export TEXTDOMAINDIR=/usr/share/locale
 #export TEXTDOMAIN="xxx"
@@ -13,6 +13,19 @@ mxcp_path=$HOME/.config/MX-Linux/mx-color-picker
 config_path=$HOME/.config/MX-Linux/mx-color-picker/mxcp.conf
 colorlist_path=$HOME/.config/MX-Linux/mx-color-picker/palettes
 colorlist_default=$HOME/.config/MX-Linux/mx-color-picker/palettes/default.txt
+
+#check for wayland
+if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+#TRANSLATORS warning message that tool doesn't work with wayland
+    wayland_text_1="$(gettext 'Sorry, this tool is not available when running a wayland session.')"
+
+    yad --title="$title" --class="$class" --window-icon="$iconpath" \
+    --borders=10 --center --width=300 --height=100 \
+    --text="\n$wayland_text_1\n" --text-align=center \
+    --button=yad-close \
+
+    exit
+fi
 
 #first run setup
 

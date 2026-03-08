@@ -1,3 +1,9 @@
+mx-color-picker (26.03.02) mx; urgency=medium
+
+  * check for wayland session
+
+ -- Melber <melber-mx-linux@gmail.com>  Wed, 08 Mar 2025 17:20:00 +0100
+
 mx-color-picker (26.03.01) mx; urgency=medium
 
   * Initial version.
